@@ -554,55 +554,59 @@ export abstract class Room<State= any, Metadata= any> {
   }
 
   private _onMessage(client: Client, bytes: number[]) {
-    // skip if client is on LEAVING state.
-    if (client.state === ClientState.LEAVING) { return; }
+    try {
+      // skip if client is on LEAVING state.
+      if (client.state === ClientState.LEAVING) { return; }
 
-    const it: decode.Iterator = { offset: 0 };
-    const code = decode.uint8(bytes, it);
+      const it: decode.Iterator = { offset: 0 };
+      const code = decode.uint8(bytes, it);
 
-    if (!bytes) {
+      if (!bytes) {
+        debugAndPrintError(`${this.roomName} (${this.roomId}), couldn't decode message: ${bytes}`);
+        return;
+      }
+
+      if (code === Protocol.ROOM_DATA) {
+        const messageType = (decode.stringCheck(bytes, it))
+          ? decode.string(bytes, it)
+          : decode.number(bytes, it);
+
+        const message = (bytes.length > it.offset)
+          ? msgpack.decode(bytes.slice(it.offset, bytes.length))
+          : undefined;
+
+        if (this.onMessageHandlers[messageType]) {
+          this.onMessageHandlers[messageType](client, message);
+
+        } else if (this.onMessageHandlers['*']) {
+          (this.onMessageHandlers['*'] as any)(client, messageType, message);
+
+        } else {
+          debugAndPrintError(`onMessage for "${messageType}" not registered.`);
+        }
+
+      } else if (code === Protocol.JOIN_ROOM) {
+        // join room has been acknowledged by the client
+        client.state = ClientState.JOINED;
+
+        // send current state when new client joins the room
+        if (this.state) {
+          this.sendFullState(client);
+        }
+
+        // dequeue messages sent before client has joined effectively (on user-defined `onJoin`)
+        if (client._enqueuedMessages.length > 0) {
+          client._enqueuedMessages.forEach((enqueued) => client.raw(enqueued));
+        }
+        delete client._enqueuedMessages;
+
+      } else if (code === Protocol.LEAVE_ROOM) {
+        this._forciblyCloseClient(client, Protocol.WS_CLOSE_CONSENTED);
+      }
+    } catch(err) {
       debugAndPrintError(`${this.roomName} (${this.roomId}), couldn't decode message: ${bytes}`);
       return;
     }
-
-    if (code === Protocol.ROOM_DATA) {
-      const messageType = (decode.stringCheck(bytes, it))
-        ? decode.string(bytes, it)
-        : decode.number(bytes, it);
-
-      const message = (bytes.length > it.offset)
-        ? msgpack.decode(bytes.slice(it.offset, bytes.length))
-        : undefined;
-
-      if (this.onMessageHandlers[messageType]) {
-        this.onMessageHandlers[messageType](client, message);
-
-      } else if (this.onMessageHandlers['*']) {
-        (this.onMessageHandlers['*'] as any)(client, messageType, message);
-
-      } else {
-        debugAndPrintError(`onMessage for "${messageType}" not registered.`);
-      }
-
-    } else if (code === Protocol.JOIN_ROOM) {
-      // join room has been acknowledged by the client
-      client.state = ClientState.JOINED;
-
-      // send current state when new client joins the room
-      if (this.state) {
-        this.sendFullState(client);
-      }
-
-      // dequeue messages sent before client has joined effectively (on user-defined `onJoin`)
-      if (client._enqueuedMessages.length > 0) {
-        client._enqueuedMessages.forEach((enqueued) => client.raw(enqueued));
-      }
-      delete client._enqueuedMessages;
-
-    } else if (code === Protocol.LEAVE_ROOM) {
-      this._forciblyCloseClient(client, Protocol.WS_CLOSE_CONSENTED);
-    }
-
   }
 
   private _forciblyCloseClient(client: Client, closeCode: number) {
