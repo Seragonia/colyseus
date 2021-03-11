@@ -1,6 +1,6 @@
 {
-  "_from": "colyseus@0.14.7",
-  "_id": "colyseus@0.14.7",
+  "_from": "colyseus@0.14.8",
+  "_id": "colyseus@0.14.8",
   "_inBundle": false,
   "_integrity": "sha512-Qxnx9IGkxoBBH5SXnIdZ5kZFwU7pHvSBGyFZMPAtIenKtfHiBM6CWQenaLmWxLekUcXA0kEeXNssxFuBnFzu7g==",
   "_location": "/colyseus",
@@ -10,12 +10,12 @@
   "_requested": {
     "type": "version",
     "registry": true,
-    "raw": "colyseus@0.14.7",
+    "raw": "colyseus@0.14.8",
     "name": "colyseus",
     "escapedName": "colyseus",
     "rawSpec": "0.14.7",
     "saveSpec": null,
-    "fetchSpec": "0.14.7"
+    "fetchSpec": "0.14.8"
   },
   "_requiredBy": [
     "#USER",
