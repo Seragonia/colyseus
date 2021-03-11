@@ -21,13 +21,8 @@
     "#USER",
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/colyseus/-/colyseus-0.14.7.tgz",
   "_shasum": "b7646bad6c6cbc712a82442bb191f3c393d67d3a",
-  "_spec": "colyseus@0.14.7",
   "_where": "L:\\NUKEKUBI\\backend",
-  "author": {
-    "name": "Endel Dreyer"
-  },
   "bugs": {
     "url": "https://github.com/colyseus/colyseus/issues"
   },
@@ -130,7 +125,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/colyseus/colyseus.git"
+    "url": "git+ssh://github.com/Seragonia/colyseus.git#master"
   },
   "scripts": {
     "prepublish": "rm -rf lib && tsc -d",
